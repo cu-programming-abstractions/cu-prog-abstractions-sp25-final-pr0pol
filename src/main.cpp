@@ -1,3 +1,4 @@
+
 #include <iostream>
 #include <vector>
 #include <string>
@@ -8,6 +9,8 @@
 
 using namespace std;
 
+std::vector<Cell> bfsPathKeys(const std::vector<std::string>& dungeon);
+
 /**
  * Prints a dungeon to the console with proper formatting.
  * Shows walls (#), open spaces ( ), start (S), exit (E), keys (a-f), and doors (A-F).
@@ -16,7 +19,7 @@ void printDungeon(const vector<string>& dungeon, const string& title = "") {
     if (!title.empty()) {
         cout << title << ":" << endl;
     }
-    
+
     for (const string& row : dungeon) {
         cout << row << endl;
     }
@@ -31,10 +34,9 @@ void printDungeonWithPath(vector<string> dungeon, const vector<Cell>& path, cons
     if (!title.empty()) {
         cout << title << ":" << endl;
     }
-    
-    // Mark the path with '*' characters, but preserve S and E
+
     for (const Cell& cell : path) {
-        if (cell.r >= 0 && cell.r < (int)dungeon.size() && 
+        if (cell.r >= 0 && cell.r < (int)dungeon.size() &&
             cell.c >= 0 && cell.c < (int)dungeon[0].size()) {
             char current = dungeon[cell.r][cell.c];
             if (current != 'S' && current != 'E') {
@@ -42,7 +44,7 @@ void printDungeonWithPath(vector<string> dungeon, const vector<Cell>& path, cons
             }
         }
     }
-    
+
     for (const string& row : dungeon) {
         cout << row << endl;
     }
@@ -60,44 +62,44 @@ bool validatePath(const vector<string>& dungeon, const vector<Cell>& path) {
     if (path.empty()) {
         return false;
     }
-    
+
     Cell start = findPosition(dungeon, 'S');
     Cell exit = findPosition(dungeon, 'E');
-    
+
     if (start.r == -1 || exit.r == -1) {
-        return false; 
+        return false;
     }
-    
+
     if (path[0] != start || path[path.size() - 1] != exit) {
         return false;
     }
-    
+
     for (size_t i = 0; i < path.size(); i++) {
         const Cell& cell = path[i];
-        
-        if (cell.r < 0 || cell.r >= (int)dungeon.size() || 
+
+        if (cell.r < 0 || cell.r >= (int)dungeon.size() ||
             cell.c < 0 || cell.c >= (int)dungeon[0].size()) {
             return false;
         }
-        
+
         char cellChar = dungeon[cell.r][cell.c];
         if (cellChar == '#') {
             return false;
         }
-        
+
         if (i > 0) {
             const Cell& prev = path[i - 1];
             int dr = abs(cell.r - prev.r);
             int dc = abs(cell.c - prev.c);
-            
+
             if ((dr == 1 && dc == 0) || (dr == 0 && dc == 1)) {
-                // Valid move
+
             } else {
-                return false; // Invalid move (diagonal, too far, or no movement)
+                return false;
             }
         }
     }
-    
+
     return true;
 }
 
@@ -156,14 +158,14 @@ vector<string> createUnsolvableDungeon() {
  */
 bool testBasicPathfinding() {
     cout << "=== Basic Pathfinding Test ===" << endl;
-    
+
     vector<string> dungeon = createTestDungeon1();
     printDungeon(dungeon, "Test Dungeon");
-    
+
     vector<Cell> path = bfsPath(dungeon);
-    
+
     cout << "Path length: " << path.size() << endl;
-    
+
     bool success = false;
     if (path.empty()) {
         cout << "[ERROR] No path found!" << endl;
@@ -174,7 +176,7 @@ bool testBasicPathfinding() {
     } else {
         cout << "[ERROR] Invalid path!" << endl;
     }
-    
+
     cout << "--------------------------------------------------" << endl << endl;
     return success;
 }
@@ -184,14 +186,14 @@ bool testBasicPathfinding() {
  */
 bool testComplexPathfinding() {
     cout << "=== Complex Pathfinding Test ===" << endl;
-    
+
     vector<string> dungeon = createTestDungeon2();
     printDungeon(dungeon, "Complex Test Dungeon");
-    
+
     vector<Cell> path = bfsPath(dungeon);
-    
+
     cout << "Path length: " << path.size() << endl;
-    
+
     bool success = false;
     if (path.empty()) {
         cout << "[ERROR] No path found!" << endl;
@@ -202,7 +204,7 @@ bool testComplexPathfinding() {
     } else {
         cout << "[ERROR] Invalid path!" << endl;
     }
-    
+
     cout << "--------------------------------------------------" << endl << endl;
     return success;
 }
@@ -213,12 +215,11 @@ bool testComplexPathfinding() {
 bool testKeyDoorPathfinding() {
     cout << "=== Key-Door Pathfinding Test ===" << endl;
     cout << "[GUIDE] For detailed explanation of bitmask BFS concepts, see: BITMASK_BFS_GUIDE.md" << endl << endl;
-    
+
     vector<string> dungeon = createTestDungeonKeys();
     printDungeon(dungeon, "Key-Door Test Dungeon");
 
 #ifdef IMPLEMENT_OPTIONAL_FUNCTIONS
-    // Optional intermediate function test (only runs if student enables it)
     cout << "Step 1: [OPTIONAL] Counting reachable keys (ignoring doors)..." << endl;
     int reachableKeys = countReachableKeys(dungeon);
     cout << "Reachable keys without considering doors: " << reachableKeys << endl << endl;
@@ -226,8 +227,7 @@ bool testKeyDoorPathfinding() {
     cout << "Step 1: [OPTIONAL] Key counting function not implemented" << endl;
     cout << "To enable: uncomment #define IMPLEMENT_OPTIONAL_FUNCTIONS in solver.h" << endl << endl;
 #endif
-    
-    // Test basic BFS (should fail due to locked door)
+
     cout << "Step 2: [REQUIRED] Testing basic BFS (should fail due to locked door)..." << endl;
     vector<Cell> basicPath = bfsPath(dungeon);
     cout << "Basic BFS result: ";
@@ -237,13 +237,12 @@ bool testKeyDoorPathfinding() {
         cout << "[OK] Found path of length " << basicPath.size() << " (unexpected!)" << endl;
     }
     cout << endl;
-    
-    // Test key-door BFS (should succeed by collecting key first)
+
     cout << "Step 3: [REQUIRED] Testing key-door BFS (should succeed by collecting key first)..." << endl;
     cout << "===========================================" << endl;
     vector<Cell> keyPath = bfsPathKeys(dungeon);
     cout << "===========================================" << endl;
-    
+
     cout << "Key-Door BFS result: ";
     bool success = false;
     if (keyPath.empty()) {
@@ -251,7 +250,7 @@ bool testKeyDoorPathfinding() {
     } else if (validatePath(dungeon, keyPath)) {
         cout << "[OK] Valid key-door path found! Length: " << keyPath.size() << endl;
         printDungeonWithPath(dungeon, keyPath, "Key-Door Solution");
-        
+
         // Educational analysis of the solution
         cout << "Solution Analysis:" << endl;
         cout << "- The algorithm first explores reachable areas" << endl;
@@ -272,12 +271,12 @@ bool testKeyDoorPathfinding() {
  */
 bool testUnsolvableDungeon() {
     cout << "=== Unsolvable Dungeon Test ===" << endl;
-    
+
     vector<string> dungeon = createUnsolvableDungeon();
     printDungeon(dungeon, "Unsolvable Test Dungeon");
-    
+
     vector<Cell> path = bfsPath(dungeon);
-    
+
     bool success = false;
     if (path.empty()) {
         cout << "[OK] Correctly identified unsolvable dungeon!" << endl;
@@ -295,16 +294,16 @@ bool testUnsolvableDungeon() {
  */
 bool testDungeonGeneration() {
     cout << "=== Dungeon Generation Test ===" << endl;
-    
+
     cout << "Generating 9x9 dungeon..." << endl;
     vector<string> smallDungeon = generateDungeon(9, 9, 10);
-    
+
     bool hasStart = false, hasExit = false;
     for (const string& row : smallDungeon) {
         if (row.find('S') != string::npos) hasStart = true;
         if (row.find('E') != string::npos) hasExit = true;
     }
-    
+
     if (!hasStart || !hasExit) {
         cout << "[ERROR] Dungeon generation incomplete - missing start (S) or exit (E)" << endl;
         cout << "[TIP] This indicates the recursive backtracking function needs implementation" << endl;
@@ -312,13 +311,11 @@ bool testDungeonGeneration() {
         cout << "--------------------------------------------------" << endl << endl;
         return false;
     }
-    
+
     printDungeon(smallDungeon, "Generated 9x9 Dungeon");
-    
-    // Try to solve the generated dungeons
     cout << "Testing pathfinding on generated dungeon..." << endl;
     vector<Cell> path = bfsPath(smallDungeon);
-    
+
     bool success = false;
     if (!path.empty()) {
         cout << "[OK] Generated dungeon is solvable! Path length: " << path.size() << endl;
@@ -343,32 +340,30 @@ int main() {
     cout << "================================================" << endl;
     cout << "[TIP] If functions hang or fail, check for TODO messages!" << endl;
     cout << "[TIP] Safety mechanisms will prevent infinite loops and provide guidance." << endl << endl;
-    
-    // Run all test cases and track progress
+
     int totalTests = 5;
     int passedTests = 0;
-    
+
     cout << "Running test 1/5..." << endl;
     if (testBasicPathfinding()) passedTests++;
-    
+
     cout << "Running test 2/5..." << endl;
     if (testComplexPathfinding()) passedTests++;
-    
+
     cout << "Running test 3/5..." << endl;
     if (testKeyDoorPathfinding()) passedTests++;
-    
+
     cout << "Running test 4/5..." << endl;
     if (testUnsolvableDungeon()) passedTests++;
-    
+
     cout << "Running test 5/5..." << endl;
     if (testDungeonGeneration()) passedTests++;
-    
-    // Display test progress summary
+
     cout << "================================================" << endl;
     cout << "TEST PROGRESS SUMMARY" << endl;
     cout << "================================================" << endl;
     cout << "Tests passed: " << passedTests << "/" << totalTests;
-    
+
     if (passedTests == totalTests) {
         cout << " [EXCELLENT! All tests passed!]" << endl;
     } else if (passedTests >= totalTests * 0.8) {
@@ -395,6 +390,6 @@ int main() {
 #else
     cout << "[DISABLED] countReachableKeys() function - uncomment #define in solver.h to enable" << endl;
 #endif
-    
+
     return 0;
 }
